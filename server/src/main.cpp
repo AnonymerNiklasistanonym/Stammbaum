@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
     std::shared_ptr<spdlog::logger> main_logger {};
     try {
         // Create a log sink for daily log files (a new file is created every day on 23:59)
-        auto sharedDailyFileSink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/daily.log", 23, 59);
+        auto sharedDailyFileSink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/daily.log", 23,
+                                                                                       59);
         sharedDailyFileSink->set_level(spdlog::level::debug);
         sharedDailyFileSink->set_pattern("[%Y-%m-%d %T:%e] [%l] [%n] [%P - %t] %v");
         // Create a console sink for console outputs (no fancy formatting)
@@ -32,7 +33,8 @@ int main(int argc, char *argv[])
         std::vector<spdlog::sink_ptr> sinks;
         sinks.push_back(sharedConsoleSink);
         sinks.push_back(sharedDailyFileSink);
-        main_logger = std::make_shared<spdlog::logger>(main_logger_name.data(), std::begin(sinks), std::end(sinks));
+        main_logger = std::make_shared<spdlog::logger>(main_logger_name.data(), std::begin(sinks),
+                                                       std::end(sinks));
         // Register the logger such that it can be reused across compilation units
         spdlog::register_logger(main_logger);
 
