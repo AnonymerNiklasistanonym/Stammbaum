@@ -1,9 +1,13 @@
 #include "cli_parser.hpp"
 #include "config.hpp"
+#include "spdlog/spdlog.h"
 #include "std_fix/std_format_fix.hpp"
+#include "logging/logging_globals.hpp"
 
 void printOpenSourceInformation ()
 {
+    spdlog::get(main_logger_name.data())->info("printOpenSourceInformation");
+
     std::cout << "Open source licenses:\n"
               << format::format("> catch2 ({} | {}):\n{}\n",
                                 open_source_git_url::catch2,
@@ -45,7 +49,7 @@ Options parseOptions(int argc, char *argv[])
 {
     const auto options = structopt::app(app_info::name.data(),
                                         app_info::version.data()).parse<Options>(argc, argv);
-    if (options.openSourceLicenses) {
+    if (options.openSourceLicenses.value()) {
         printOpenSourceInformation();
         exit(EXIT_SUCCESS);
     }

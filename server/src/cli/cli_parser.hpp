@@ -6,7 +6,7 @@ struct Options {
      * The server port
      */
     std::optional<unsigned int> port = 3000;
-    std::optional<bool> openSourceLicenses = true;
+    std::optional<bool> openSourceLicenses = false;
 };
 STRUCTOPT(Options, port, openSourceLicenses);
 
