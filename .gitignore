@@ -17,3 +17,6 @@ build_*
 
 # Ignore astyle temp files
 *.orig
+
+# Ignore log files
+*.log

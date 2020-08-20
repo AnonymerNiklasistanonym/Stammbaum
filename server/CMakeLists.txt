@@ -29,11 +29,14 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../.git")
 endif()
 
 # Include vendor libraries
-add_subdirectory("${VENDOR_DIR}/drogon" bin_drogon)
-add_subdirectory("${VENDOR_DIR}/indicators" bin_indicators)
-add_subdirectory("${VENDOR_DIR}/rapidjson" bin_rapidjson)
+#add_subdirectory("${VENDOR_DIR}/drogon" bin_drogon)
+#add_subdirectory("${VENDOR_DIR}/indicators" bin_indicators)
+#add_subdirectory("${VENDOR_DIR}/rapidjson" bin_rapidjson) # No exports of targets
 add_subdirectory("${VENDOR_DIR}/sqlpp11" bin_sqlpp11)
 add_subdirectory("${VENDOR_DIR}/structopt" bin_structopt)
+add_subdirectory("${VENDOR_DIR}/fmt" bin_fmt)
+#add_subdirectory("${VENDOR_DIR}/catch2" bin_catch2)
+#add_subdirectory("${VENDOR_DIR}/spdlog" bin_spdlog) # No exports of targets
 
 # Set links to local source/header files
 set(INCLUDE_FILES_DIR "${PROJECT_DIR}/include")
@@ -56,6 +59,8 @@ file(
     "${VENDOR_DIR}/rapidjson/include/**/*.hpp"
     "${VENDOR_DIR}/sqlpp11/include/**/*.hpp"
     "${VENDOR_DIR}/structopt/include/**/*.hpp"
+    "${VENDOR_DIR}/catch2/include/**/*.hpp"
+    "${VENDOR_DIR}/spdlog/include/**/*.hpp"
 )
 
 # Output all indexed source files
@@ -68,6 +73,40 @@ message(STATUS "Headers:")
 foreach(HEADER_FILE ${ALL_HEADER_FILES})
     message(STATUS " - ${HEADER_FILE}")
 endforeach()
+
+# Read licenses into variables
+function(create_git_submodule_information submodule_name submodule_directory submodule_license_file)
+    message(STATUS " - submodule_name:         ${submodule_name}")
+    message(STATUS " - submodule_directory:    ${submodule_directory}")
+    message(STATUS " - submodule_license_file: ${submodule_license_file}")
+
+    # Get GIT URL
+    execute_process(COMMAND git config --get remote.origin.url
+    WORKING_DIRECTORY "${submodule_directory}"
+    OUTPUT_VARIABLE GIT_URL)
+    string(REPLACE "\n" "" GIT_URL "${GIT_URL}")
+    set("GIT_URL_${submodule_name}" "${GIT_URL}" PARENT_SCOPE)
+
+    execute_process(COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY "${submodule_directory}"
+    OUTPUT_VARIABLE GIT_HASH)
+    string(REPLACE "\n" "" GIT_HASH "${GIT_HASH}")
+    set("GIT_HASH_${submodule_name}" "${GIT_HASH}" PARENT_SCOPE)
+
+    file(READ "${submodule_directory}/${submodule_license_file}" LICENSE)
+    string(REPLACE "\n" "\\n" LICENSE "${LICENSE}")
+    string(REPLACE "\"" "\\\"" LICENSE "${LICENSE}")
+    set("LICENSE_${submodule_name}" "${LICENSE}" PARENT_SCOPE)
+endfunction()
+
+create_git_submodule_information("RAPIDJSON" "${VENDOR_DIR}/rapidjson" "license.txt")
+create_git_submodule_information("STRUCTOPT" "${VENDOR_DIR}/structopt" "LICENSE")
+create_git_submodule_information("SQLPP11" "${VENDOR_DIR}/sqlpp11" "LICENSE")
+create_git_submodule_information("SPDLOG" "${VENDOR_DIR}/spdlog" "LICENSE")
+create_git_submodule_information("INDICATORS" "${VENDOR_DIR}/indicators" "LICENSE")
+create_git_submodule_information("FMT" "${VENDOR_DIR}/fmt" "LICENSE.rst")
+create_git_submodule_information("DROGON" "${VENDOR_DIR}/drogon" "LICENSE")
+create_git_submodule_information("CATCH2" "${VENDOR_DIR}/catch2" "LICENSE.txt")
 
 # Create a configure file
 set(VERSION "1.0.0")
@@ -97,9 +136,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 # Include the include directory of rapidjson
 target_include_directories(
     ${PROJECT_NAME}
-    SYSTEM
-    INTERFACE
+    PRIVATE
     "${VENDOR_DIR}/rapidjson/include"
+)
+
+# Include the include directory of spdlog
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    "${VENDOR_DIR}/spdlog/include"
 )
 
 # Link structopt
@@ -107,6 +152,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE structopt::structopt)
 
 # Link sqlpp11
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlpp11::sqlpp11)
+
+# Link fmt
+target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
 # Set library source files compilation flags for different compilers
 target_compile_options(
