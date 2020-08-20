@@ -41,7 +41,8 @@ CMAKELISTS_FILES=$(find . -regex ".*/CMakeLists.txt" \
 
 CMAKELISTS_FILES_ARE_CORRECTLY_FORMATTED=true
 CMAKELISTS_FILES_THAT_ARE_INCORRECTLY_FORMATTED=()
-CMAKELISTS_GERSEMI_ARGS=()
+CMAKELISTS_GERSEMI_DEFINITION="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/gersemi_definitions.cmake"
+CMAKELISTS_GERSEMI_ARGS=(--definitions "$CMAKELISTS_GERSEMI_DEFINITION")
 
 if [[ "$FORMAT_FILES_CHECK" = true ]]; then
     CMAKELISTS_GERSEMI_ARGS+=(--check)
@@ -56,8 +57,8 @@ fi
 
 IFS=$'\n'
 for CMAKELISTS_FILE in $CMAKELISTS_FILES; do
-    echo "> gersemi $CMAKELISTS_GERSEMI_ARGS $CMAKELISTS_FILE"
-    gersemi $CMAKELISTS_GERSEMI_ARGS "$CMAKELISTS_FILE"
+    echo "> gersemi ${CMAKELISTS_GERSEMI_ARGS[@]} $CMAKELISTS_FILE"
+    gersemi "${CMAKELISTS_GERSEMI_ARGS[@]}" "$CMAKELISTS_FILE"
     if [[ $? -eq 0 ]]; then
         if [[ "$FORMAT_FILES_CHECK" = true ]]; then
             echo "  ALREADY CORRECTLY FORMATTED"

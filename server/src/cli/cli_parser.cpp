@@ -33,7 +33,7 @@ void printOpenSourceInformation ()
                                 open_source_git_url::sqlpp11,
                                 open_source_git_hash::sqlpp11,
                                 open_source_license::sqlpp11)
-              << format::format("> structopt ({} | {}): \n{}\n",
+              << format::format("> structopt ({} | {}):\n{}\n",
                                 open_source_git_url::structopt,
                                 open_source_git_hash::structopt,
                                 open_source_license::structopt)

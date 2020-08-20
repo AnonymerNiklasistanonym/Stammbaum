@@ -15,15 +15,20 @@ add_subdirectory("${PROJECT_DIR}/lib_database")
 # Update git submodules automatically
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../.git")
-# Update submodules as needed
+    # Update submodules as needed
     option(GIT_SUBMODULE "Check submodules during build of server" ON)
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT
+        )
         if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+            message(
+                FATAL_ERROR
+                "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules"
+            )
         endif()
     endif()
 endif()
@@ -74,44 +79,91 @@ foreach(HEADER_FILE ${ALL_HEADER_FILES})
     message(STATUS " - ${HEADER_FILE}")
 endforeach()
 
-# Read licenses into variables
-function(create_git_submodule_information submodule_name submodule_directory submodule_license_file)
-    message(STATUS " - submodule_name:         ${submodule_name}")
-    message(STATUS " - submodule_directory:    ${submodule_directory}")
-    message(STATUS " - submodule_license_file: ${submodule_license_file}")
+# Read git submodule information into variables
+function(create_git_submodule_information)
+    set(options)
+    set(oneValueArgs ID DIR LICENSE_FILE_PATH)
+    set(multiValueArgs)
+    cmake_parse_arguments(
+        SUBMODULE_INFO
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
-    # Get GIT URL
-    execute_process(COMMAND git config --get remote.origin.url
-    WORKING_DIRECTORY "${submodule_directory}"
-    OUTPUT_VARIABLE GIT_URL)
+    # Get git submodule repository URL
+    # gersemi: off
+    execute_process(
+        COMMAND git config --get remote.origin.url
+        WORKING_DIRECTORY "${SUBMODULE_INFO_DIR}"
+        OUTPUT_VARIABLE GIT_URL
+    )
+    # gersemi: on
     string(REPLACE "\n" "" GIT_URL "${GIT_URL}")
-    set("GIT_URL_${submodule_name}" "${GIT_URL}" PARENT_SCOPE)
-
-    execute_process(COMMAND git rev-parse --short HEAD
-    WORKING_DIRECTORY "${submodule_directory}"
-    OUTPUT_VARIABLE GIT_HASH)
+    set("GIT_URL_${SUBMODULE_INFO_ID}" "${GIT_URL}" PARENT_SCOPE)
+    # Get git submodule git HASH
+    # gersemi: off
+    execute_process(
+        COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY "${SUBMODULE_INFO_DIR}"
+        OUTPUT_VARIABLE GIT_HASH
+    )
+    # gersemi: on
     string(REPLACE "\n" "" GIT_HASH "${GIT_HASH}")
-    set("GIT_HASH_${submodule_name}" "${GIT_HASH}" PARENT_SCOPE)
-
-    file(READ "${submodule_directory}/${submodule_license_file}" LICENSE)
+    set("GIT_HASH_${SUBMODULE_INFO_ID}" "${GIT_HASH}" PARENT_SCOPE)
+    # Get git submodule license
+    file(
+        READ "${SUBMODULE_INFO_DIR}/${SUBMODULE_INFO_LICENSE_FILE_PATH}" LICENSE
+    )
     string(REPLACE "\n" "\\n" LICENSE "${LICENSE}")
     string(REPLACE "\"" "\\\"" LICENSE "${LICENSE}")
-    set("LICENSE_${submodule_name}" "${LICENSE}" PARENT_SCOPE)
+    set("LICENSE_${SUBMODULE_INFO_ID}" "${LICENSE}" PARENT_SCOPE)
 endfunction()
-
-create_git_submodule_information("RAPIDJSON" "${VENDOR_DIR}/rapidjson" "license.txt")
-create_git_submodule_information("STRUCTOPT" "${VENDOR_DIR}/structopt" "LICENSE")
-create_git_submodule_information("SQLPP11" "${VENDOR_DIR}/sqlpp11" "LICENSE")
-create_git_submodule_information("SPDLOG" "${VENDOR_DIR}/spdlog" "LICENSE")
-create_git_submodule_information("INDICATORS" "${VENDOR_DIR}/indicators" "LICENSE")
-create_git_submodule_information("FMT" "${VENDOR_DIR}/fmt" "LICENSE.rst")
-create_git_submodule_information("DROGON" "${VENDOR_DIR}/drogon" "LICENSE")
-create_git_submodule_information("CATCH2" "${VENDOR_DIR}/catch2" "LICENSE.txt")
+create_git_submodule_information(
+    ID "RAPIDJSON"
+    DIR "${VENDOR_DIR}/rapidjson"
+    LICENSE_FILE_PATH "license.txt"
+)
+create_git_submodule_information(
+    ID "STRUCTOPT"
+    DIR "${VENDOR_DIR}/structopt"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "SQLPP11"
+    DIR "${VENDOR_DIR}/sqlpp11"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "SPDLOG"
+    DIR "${VENDOR_DIR}/spdlog"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "INDICATORS"
+    DIR "${VENDOR_DIR}/indicators"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "FMT"
+    DIR "${VENDOR_DIR}/fmt"
+    LICENSE_FILE_PATH "LICENSE.rst"
+)
+create_git_submodule_information(
+    ID "DROGON"
+    DIR "${VENDOR_DIR}/drogon"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "CATCH2"
+    DIR "${VENDOR_DIR}/catch2"
+    LICENSE_FILE_PATH "LICENSE.txt"
+)
 
 # Create a configure file
 set(VERSION "1.0.0")
-configure_file("${CONFIG_SOURCE_FILE}"
-               "${PROJECT_BINARY_DIR}/config.hpp")
+configure_file("${CONFIG_SOURCE_FILE}" "${PROJECT_BINARY_DIR}/config.hpp")
 
 # Create executable with all provided sources
 # (include headers for better IDE support)
@@ -174,7 +226,7 @@ target_compile_options(
     >
 )
 
-# Set C++ version for the local source files
+# Set C++ version for the project
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
