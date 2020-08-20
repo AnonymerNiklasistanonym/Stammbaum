@@ -1,8 +1,12 @@
-#include "cli/cli_parser.hpp"
+#include <memory>
+
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 
+#include <drogon/drogon.h>
+
+#include "cli/cli_parser.hpp"
 #include "std_fix/std_format_fix.hpp"
 #include "logging/logging_globals.hpp"
 
@@ -47,14 +51,22 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    std::shared_ptr<Options> options {};
     try {
         // Parse CLI args
-        auto options = parseOptions(argc, argv);
+        options = std::make_shared<Options>(parseOptions(argc, argv));
         // Print parsed arguments:
-        main_logger->info("port = {}", options.port.value());
+        main_logger->info("port = {}", options->port.value());
     } catch (structopt::exception &e) {
         main_logger->error("{}",  e.what());
         std::cout << e.help() << std::endl;
         return EXIT_FAILURE;
     }
+
+    //Set HTTP listener address and port
+    drogon::app().addListener(options->ipAddress.value(), options->port.value());
+    //Load config file
+    //drogon::app().loadConfigFile("../config.json");
+    //Run HTTP framework,the method will block in the internal event loop
+    drogon::app().run();
 }

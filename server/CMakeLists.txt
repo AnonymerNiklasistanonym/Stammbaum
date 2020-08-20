@@ -34,7 +34,7 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../.git")
 endif()
 
 # Include vendor libraries
-#add_subdirectory("${VENDOR_DIR}/drogon" bin_drogon)
+add_subdirectory("${VENDOR_DIR}/drogon" bin_drogon)
 #add_subdirectory("${VENDOR_DIR}/indicators" bin_indicators)
 #add_subdirectory("${VENDOR_DIR}/rapidjson" bin_rapidjson) # No exports of targets
 add_subdirectory("${VENDOR_DIR}/sqlpp11" bin_sqlpp11)
@@ -48,6 +48,26 @@ set(INCLUDE_FILES_DIR "${PROJECT_DIR}/include")
 set(SOURCE_FILES_DIR "${PROJECT_DIR}/src")
 set(MAIN_SOURCE_FILE "${SOURCE_FILES_DIR}/main.cpp")
 set(CONFIG_SOURCE_FILE "${SOURCE_FILES_DIR}/config.in.hpp")
+
+# Drogon source files
+aux_source_directory(controllers CTL_SRC)
+aux_source_directory(filters FILTER_SRC)
+aux_source_directory(plugins PLUGIN_SRC)
+aux_source_directory(models MODEL_SRC)
+
+# Drogon view compilations
+file(GLOB_RECURSE SCP_LIST ${CMAKE_CURRENT_SOURCE_DIR}/views/*.csp)
+foreach(cspFile ${SCP_LIST})
+    message(STATUS "cspFile:" ${cspFile})
+    get_filename_component(classname ${cspFile} NAME_WE)
+    message(STATUS "view classname:" ${classname})
+    ADD_CUSTOM_COMMAND(OUTPUT ${classname}.h ${classname}.cc
+            COMMAND drogon_ctl
+            ARGS create view ${cspFile}
+            DEPENDS ${cspFile}
+            VERBATIM )
+    set(VIEWSRC ${VIEWSRC} ${classname}.cc)
+endforeach()
 
 # Collect all files (for IDEs)
 file(
@@ -172,6 +192,7 @@ add_executable(
     "${MAIN_SOURCE_FILE}"
     ${ALL_SOURCE_FILES}
     ${ALL_HEADER_FILES}
+    ${SRC_DIR} ${CTL_SRC} ${FILTER_SRC} ${VIEWSRC} ${PLUGIN_SRC} ${MODEL_SRC}
 )
 
 # Include the include directories of all modules and the local headers
@@ -180,6 +201,7 @@ target_include_directories(
     PUBLIC
     ${INCLUDE_FILES_DIR}
     ${SOURCE_FILES_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/models
 )
 
 # Include the configure file in the binary directory
@@ -207,6 +229,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE sqlpp11::sqlpp11)
 
 # Link fmt
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
+
+# Link drogon
+target_link_libraries(${PROJECT_NAME} PRIVATE drogon)
 
 # Set library source files compilation flags for different compilers
 target_compile_options(
