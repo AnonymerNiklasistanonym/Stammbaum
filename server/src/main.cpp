@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
     std::shared_ptr<spdlog::logger> main_logger {};
     try {
         // Create a log sink for daily log files (a new file is created every day on 23:59)
-        auto sharedDailyFileSink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/daily.log", 23,
-                                                                                       59);
+        auto sharedDailyFileSink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/daily.log",
+                                                                                       23, 59);
         sharedDailyFileSink->set_level(spdlog::level::debug);
         sharedDailyFileSink->set_pattern("[%Y-%m-%d %T:%e] [%l] [%n] [%P - %t] %v");
         // Create a console sink for console outputs (no fancy formatting)
@@ -28,29 +28,17 @@ int main(int argc, char *argv[])
         sharedConsoleSink->set_level(spdlog::level::info);
         sharedConsoleSink->set_pattern("%v");
 
-        // Create loggers that only write to the file
-        auto firstLogger = std::make_shared<spdlog::logger>("logger1", sharedDailyFileSink);
-        auto secondLogger = std::make_shared<spdlog::logger>("logger2", sharedDailyFileSink);
-
         // Create a combined logger that writes to the file and console
         std::vector<spdlog::sink_ptr> sinks;
         sinks.push_back(sharedConsoleSink);
         sinks.push_back(sharedDailyFileSink);
-        main_logger = std::make_shared<spdlog::logger>(main_logger_name.data(), std::begin(sinks),
-                                                       std::end(sinks));
+        main_logger = std::make_shared<spdlog::logger>(main_logger_name.data(),
+                                                       std::begin(sinks), std::end(sinks));
+        main_logger->set_level(spdlog::level::debug);
         // Register the logger such that it can be reused across compilation units
         spdlog::register_logger(main_logger);
 
-        // These messages are only in the file
-        firstLogger->set_level(spdlog::level::debug);
-        secondLogger->set_level(spdlog::level::debug);
-        main_logger->set_level(spdlog::level::debug);
-
-        firstLogger->debug("program was started [file_only]");
-        secondLogger->debug("program was started [file_only]");
-        main_logger->debug("program was started [file_only]");
-        // These messages are in the file and the console
-        main_logger->info("program was started [file_and_console]");
+        main_logger->debug("Loggers were successfully initialized");
     } catch (const spdlog::spdlog_ex &ex) {
         std::cout << format::format("Log init failed: {}", ex.what()) << std::endl;
         return EXIT_FAILURE;
@@ -58,10 +46,8 @@ int main(int argc, char *argv[])
 
     std::shared_ptr<Options> options {};
     try {
-        // Parse CLI args
         options = std::make_shared<Options>(parseOptions(argc, argv));
-        // Print parsed arguments:
-        main_logger->info("port = {}", options->port.value());
+        main_logger->debug("CLI arguments were successfully parsed");
     } catch (structopt::exception &e) {
         main_logger->error("{}",  e.what());
         std::cout << e.help() << std::endl;
@@ -75,8 +61,11 @@ int main(int argc, char *argv[])
                                                                     options->mySqlUserName,
                                                                     options->mySqlUserPassword,
                                                                     options->mySqlDebug));
+        main_logger->debug("MySQL database connection was successfully initialized on {}@{}",
+                           options->mySqlUserName, options->mySqlDbName);
     } catch (const sqlpp::exception &e) {
-        main_logger->error("There were problems when trying to connect to the MySQL database: \"{}\"",  e.what());
+        main_logger->error("There were problems when trying to connect to the MySQL database: \"{}\"",
+                           e.what());
         return EXIT_FAILURE;
     }
 
@@ -85,6 +74,13 @@ int main(int argc, char *argv[])
     //Load config file
     //drogon::app().loadConfigFile("../config.json");
     //Run HTTP framework,the method will block in the internal event loop
+    main_logger->debug("Drogon http framework was successfully initialized and will be run on {}:{}",
+                       options->ipAddress.value(), options->port.value());
+    main_logger->flush();
     drogon::app().run();
+    main_logger->debug("Drogon http framework was stopped");
     // Drogon will stop the program itself when an error happens in the server logic
+
+    // Shutdown all registered loggers.
+    spdlog::shutdown();
 }
