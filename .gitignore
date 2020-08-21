@@ -11,6 +11,7 @@ CTestTestfile.cmake
 _deps
 
 # Ignore build directories
+bin
 build
 build_*
 !build_*.sh
