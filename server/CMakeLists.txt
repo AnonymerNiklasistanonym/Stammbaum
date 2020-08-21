@@ -53,6 +53,7 @@ set(INCLUDE_FILES_DIR "${PROJECT_DIR}/include")
 set(SOURCE_FILES_DIR "${PROJECT_DIR}/src")
 set(MAIN_SOURCE_FILE "${SOURCE_FILES_DIR}/main.cpp")
 set(CONFIG_SOURCE_FILE "${SOURCE_FILES_DIR}/config.in.hpp")
+set(CONFIG_SOURCE_FILE_VENDOR_GIT_INFO "${SOURCE_FILES_DIR}/cli/vendor_git_info.in.hpp")
 
 # Drogon source files
 aux_source_directory(controllers CTL_SRC)
@@ -146,13 +147,38 @@ function(create_git_submodule_information)
     set("LICENSE_${SUBMODULE_INFO_ID}" "${LICENSE}" PARENT_SCOPE)
 endfunction()
 create_git_submodule_information(
+    ID "CATCH2"
+    DIR "${VENDOR_DIR}/catch2"
+    LICENSE_FILE_PATH "LICENSE.txt"
+)
+create_git_submodule_information(
+    ID "DATE"
+    DIR "${VENDOR_DIR}/date"
+    LICENSE_FILE_PATH "LICENSE.txt"
+)
+create_git_submodule_information(
+    ID "DROGON"
+    DIR "${VENDOR_DIR}/drogon"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
+    ID "FMT"
+    DIR "${VENDOR_DIR}/fmt"
+    LICENSE_FILE_PATH "LICENSE.rst"
+)
+create_git_submodule_information(
+    ID "INDICATORS"
+    DIR "${VENDOR_DIR}/indicators"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
     ID "RAPIDJSON"
     DIR "${VENDOR_DIR}/rapidjson"
     LICENSE_FILE_PATH "license.txt"
 )
 create_git_submodule_information(
-    ID "STRUCTOPT"
-    DIR "${VENDOR_DIR}/structopt"
+    ID "SPDLOG"
+    DIR "${VENDOR_DIR}/spdlog"
     LICENSE_FILE_PATH "LICENSE"
 )
 create_git_submodule_information(
@@ -166,34 +192,18 @@ create_git_submodule_information(
     LICENSE_FILE_PATH "LICENSE"
 )
 create_git_submodule_information(
-    ID "SPDLOG"
-    DIR "${VENDOR_DIR}/spdlog"
+    ID "STRUCTOPT"
+    DIR "${VENDOR_DIR}/structopt"
     LICENSE_FILE_PATH "LICENSE"
-)
-create_git_submodule_information(
-    ID "INDICATORS"
-    DIR "${VENDOR_DIR}/indicators"
-    LICENSE_FILE_PATH "LICENSE"
-)
-create_git_submodule_information(
-    ID "FMT"
-    DIR "${VENDOR_DIR}/fmt"
-    LICENSE_FILE_PATH "LICENSE.rst"
-)
-create_git_submodule_information(
-    ID "DROGON"
-    DIR "${VENDOR_DIR}/drogon"
-    LICENSE_FILE_PATH "LICENSE"
-)
-create_git_submodule_information(
-    ID "CATCH2"
-    DIR "${VENDOR_DIR}/catch2"
-    LICENSE_FILE_PATH "LICENSE.txt"
 )
 
 # Create a configure file
 set(VERSION "1.0.0")
 configure_file("${CONFIG_SOURCE_FILE}" "${PROJECT_BINARY_DIR}/config.hpp")
+if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../.git")
+    # Only update the vendor git info if the project is in a git repository
+    configure_file("${CONFIG_SOURCE_FILE_VENDOR_GIT_INFO}" "${SOURCE_FILES_DIR}/cli/vendor_git_info.hpp")
+endif()
 
 # Create executable with all provided sources
 # (include headers for better IDE support)
