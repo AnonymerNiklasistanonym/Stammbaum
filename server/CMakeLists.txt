@@ -1,5 +1,5 @@
 # Set minimum CMake version
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 
 # Set project name and the programming language
 project("prototype-server" LANGUAGES CXX)

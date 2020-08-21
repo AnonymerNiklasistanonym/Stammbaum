@@ -20,3 +20,11 @@ Any frontend can connect to it via the TCP protocol.
    ```
 
    (Keep in mind that `clang` is not supported because it prints errors with the current code while for example gcc doesn't)
+
+## Run
+
+Run the built executable with for example the following arguments:
+
+```sh
+./build/prototype-server --mySqlDebug cpptestdb cpptestuser
+```

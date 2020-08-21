@@ -1,15 +1,18 @@
+#pragma once
 #include <structopt/app.hpp>
 
 
 struct Options {
-    /**
-     * The server port
-     */
+    std::string mySqlDbName;
+    std::string mySqlUserName;
+    std::optional<std::string> mySqlUserPassword = "";
+    std::optional<bool> mySqlDebug = false;
     std::optional<uint16_t> port = 3000;
     std::optional<std::string> ipAddress = "0.0.0.0";
     std::optional<bool> openSourceLicenses = false;
 };
-STRUCTOPT(Options, ipAddress, port, openSourceLicenses);
+STRUCTOPT(Options, mySqlDbName, mySqlUserName, mySqlUserPassword, mySqlDebug, ipAddress, port,
+          openSourceLicenses);
 
 void printOpenSourceInformation();
 
