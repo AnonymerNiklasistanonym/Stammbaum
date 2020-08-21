@@ -37,6 +37,10 @@ void printOpenSourceInformation ()
                                 open_source_git_url::sqlpp11,
                                 open_source_git_hash::sqlpp11,
                                 open_source_license::sqlpp11)
+              << format::format("> sqlpp11 ({} | {}):\n{}\n",
+                                open_source_git_url::sqlppConnector11Mysql,
+                                open_source_git_hash::sqlppConnector11Mysql,
+                                open_source_license::sqlppConnector11Mysql)
               << format::format("> structopt ({} | {}):\n{}\n",
                                 open_source_git_url::structopt,
                                 open_source_git_hash::structopt,

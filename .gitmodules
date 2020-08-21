@@ -22,3 +22,9 @@
 [submodule "vendor/fmt"]
 	path = vendor/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "vendor/sqlpp11_connector_mysql"]
+	path = vendor/sqlpp11_connector_mysql
+	url = https://github.com/rbock/sqlpp11-connector-mysql.git
+[submodule "vendor/date"]
+	path = vendor/date
+	url = https://github.com/howardhinnant/date

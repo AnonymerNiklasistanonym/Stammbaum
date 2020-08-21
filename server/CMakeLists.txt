@@ -33,11 +33,16 @@ if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../.git")
     endif()
 endif()
 
+# Check if thread library can be found
+find_package(Threads REQUIRED)
+
 # Include vendor libraries
 add_subdirectory("${VENDOR_DIR}/drogon" bin_drogon)
 #add_subdirectory("${VENDOR_DIR}/indicators" bin_indicators)
 #add_subdirectory("${VENDOR_DIR}/rapidjson" bin_rapidjson) # No exports of targets
 add_subdirectory("${VENDOR_DIR}/sqlpp11" bin_sqlpp11)
+# set(DATE_INCLUDE_DIR "${VENDOR_DIR}/date/include")
+add_subdirectory("${VENDOR_DIR}/sqlpp11_connector_mysql" bin_sqlpp11_connector_mysql)
 add_subdirectory("${VENDOR_DIR}/structopt" bin_structopt)
 add_subdirectory("${VENDOR_DIR}/fmt" bin_fmt)
 #add_subdirectory("${VENDOR_DIR}/catch2" bin_catch2)
@@ -156,6 +161,11 @@ create_git_submodule_information(
     LICENSE_FILE_PATH "LICENSE"
 )
 create_git_submodule_information(
+    ID "SQLPP11_CONNECTOR_MYSQL"
+    DIR "${VENDOR_DIR}/sqlpp11_connector_mysql"
+    LICENSE_FILE_PATH "LICENSE"
+)
+create_git_submodule_information(
     ID "SPDLOG"
     DIR "${VENDOR_DIR}/spdlog"
     LICENSE_FILE_PATH "LICENSE"
@@ -221,11 +231,23 @@ target_include_directories(
     "${VENDOR_DIR}/spdlog/include"
 )
 
+# Include the include directory of sqlpp11 connector
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    "${VENDOR_DIR}/sqlpp11_connector_mysql/include"
+)
+
 # Link structopt
 target_link_libraries(${PROJECT_NAME} PRIVATE structopt::structopt)
 
 # Link sqlpp11
 target_link_libraries(${PROJECT_NAME} PRIVATE sqlpp11::sqlpp11)
+
+# Link sqlpp11 connector mysql
+target_link_libraries(${PROJECT_NAME} PRIVATE sqlpp-mysql)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PRIVATE "${MYSQL_LIBRARIES}")
 
 # Link fmt
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
@@ -240,7 +262,7 @@ target_compile_options(
     $<$<CXX_COMPILER_ID:GNU>:
     -pedantic
     -Wall
-    -Werror
+    #-Werror
     -Wextra
     -Wformat
     >
